@@ -10,7 +10,9 @@ The Prompt Maker is a Python script designed to generate prompts for various app
 
 To use the Prompt Maker script, you need to have Python installed on your system. Follow these steps to set up the environment:
 
-1. Clone this repository to your local machine:
+1. Go to Extensions tab - Install from URL:
+2. Copy the next code and paste it in the URL for extension's git repository field and hit Install and Restart
 
-```bash
-git clone https://github.com/YourUsername/YourRepository.git
+[https://github.com/YourUsername/YourRepository.git](https://github.com/rauldlnx10/promptmaker.git)https://github.com/rauldlnx10/promptmaker.git
+
+3. Restart Automatic1111.
