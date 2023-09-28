@@ -119,7 +119,13 @@ def copy_prompt_to_clipboard(text):
 
 def show_history():
     history_text = "\n".join(history)
-    return f"{history_text}\n"
+    return f"""
+        <div style="border: 1px solid #ccc; padding: 10px; max-height: 700px; overflow-y: auto; font-size: 20px;">
+            <ul style="list-style-type: none; padding-left: 0;">
+                {"".join(f"<li style='border-bottom: 1px solid #ccc; padding-bottom: 5px;'>{item}</li>" for item in history)}
+            </ul>
+        </div>
+        """
 
 def save_history_to_file():
     desktop_path = os.path.expanduser("~/Desktop")  # Obtiene la ruta al escritorio del usuario
@@ -133,22 +139,21 @@ def save_history_to_file():
     gr.Info(f"History saved to {filename}")
 
 def clear_history():
-    history_text = ""
-    return f""
+    global history
+    history = [] 
+    return ""
 
 with gr.Blocks(layout="1-3") as interface:
     with gr.Tab("Prompting"):
         with gr.Row(variant="panel"):
-            txt_subjects = gr.Textbox(label="Input Text", show_label=True, lines=1, variant="panel")
+            txt_subjects = gr.Textbox(label="Input a Subject", show_label=True, lines=1, variant="panel")
 
         inputs_left = []   
         inputs_center = [] 
         inputs_right = []  
 
-        with gr.Accordion("Options:", scale=0.7):
+        with gr.Accordion("Options:"):
             with gr.Row():
-                btn_randomize = gr.Button(value="Randomize", variant="secondary")
-            with gr.Row(variant="panel"):
                 with gr.Column():
                     for file, group_name in zip(files[:len(files)//3], group_names[:len(group_names)//3]):
                         filename = os.path.join(directory, file)
@@ -167,19 +172,26 @@ with gr.Blocks(layout="1-3") as interface:
                         group = read_elements(filename)
                         inputs_right.append(gr.Dropdown(choices=group, label=group_name.capitalize()))
         
-            with gr.Column(variant="compact"):
-                with gr.Row():
-                    btn_generate = gr.Button(value="📄 Generate", variant="primary", scale=0.2)
-                    copy_prompt = gr.Button("Copy", scale=0)
-                    txt_result = gr.Markdown(label="Generated Prompt:")
+        with gr.Column(variant="compact"):
+            with gr.Row():
+                with gr.Column(scale=0.3):
+                    with gr.Row():
+                        btn_randomize = gr.Button(value="Randomize", variant="secondary", scale=1)
+                    with gr.Row():
+                        btn_generate = gr.Button(value="✍ Generate", variant="primary", scale=0.5)
+                    #with gr.Row():
+                        copy_prompt = gr.Button("📋 Copy", scale=0.5) 
+                with gr.Column():
+                    txt_result = gr.Markdown("")
+                    
 
     
     with gr.Tab("History"):
         with gr.Row():
-            clear_history_button = gr.Button("🗑️ Clear History", variant="stop", scale=0)
-            save_history_button = gr.Button("Save History to File", scale=0)
+            history_display = gr.HTML()
         with gr.Row():
-            history_display = gr.Markdown("")
+            clear_history_button = gr.Button("🗑️ Clear History", variant="stop", scale=0)
+            save_history_button = gr.Button("💾 Save History", scale=0, variant="primary")
 
         txt_result.change(show_history, None, history_display)  # Actualizar el componente de historial
         btn_randomize.click(randomize_elements, outputs=inputs_left + inputs_center + inputs_right)
