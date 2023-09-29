@@ -39,7 +39,8 @@ order = [
     "Quality", 
     "Type", 
     "Input text", 
-    "Clothes", 
+    "Clothes",
+    "Accesories", 
     "Places", 
     "Position", 
     "Hair", 
@@ -105,7 +106,9 @@ def randomize_elements(group):
         random_elements = []
         try:
             for group in groups:
-                random_element = random.choice(group)
+                random_element = random.choice(group) # elige un elemento al azar
+                while random_element == "": # mientras el elemento sea vacío
+                    random_element = random.choice(group) # elige otro elemento al azar
                 random_elements.append(random_element)
             return tuple(random_elements)  # Si todos los grupos tienen al menos un elemento, devuelve los elementos seleccionados
         except IndexError:  # Si algún grupo está vacío, IndexError será lanzado
@@ -113,9 +116,13 @@ def randomize_elements(group):
     return tuple(random_elements)
 
 def copy_prompt_to_clipboard(text):
-    text = text.lstrip('## ')
-    gr.Info("Prompt copied to clipboard")
-    pyperclip.copy(text)
+    if text and text.strip():  # Verifica si el texto no es nulo y no está vacío después de quitar espacios en blanco.
+        text = text.lstrip('## ')
+        pyperclip.copy(text)
+        yield f"Prompt copied to clipboard"
+    else:
+        yield "Generate a Prompt first"
+
 
 def show_history():
     history_text = "\n".join(history)
@@ -136,7 +143,7 @@ def save_history_to_file():
         for item in history:
             file.write(item + "\n")
 
-    gr.Info(f"History saved to {filename}")
+    yield f"## History saved to {filename}"
 
 def clear_history():
     global history
@@ -145,8 +152,9 @@ def clear_history():
 
 with gr.Blocks(layout="1-3") as interface:
     with gr.Tab("Prompting"):
-        with gr.Row(variant="panel"):
-            txt_subjects = gr.Textbox(label="Input a Subject", show_label=True, lines=1, variant="panel")
+        with gr.Row():
+            txt_subjects = gr.Textbox(label="Input a Subject", show_label=True, lines=1)
+            info_copy = gr.Textbox(label="Info", interactive=False, lines=1, scale=0.2)
 
         inputs_left = []   
         inputs_center = [] 
@@ -182,7 +190,7 @@ with gr.Blocks(layout="1-3") as interface:
                     #with gr.Row():
                         copy_prompt = gr.Button("📋 Copy", scale=0.5) 
                 with gr.Column():
-                    txt_result = gr.Markdown("")
+                    txt_result = gr.Markdown(text_align="center", variant="panel")
                     
 
     
@@ -192,13 +200,15 @@ with gr.Blocks(layout="1-3") as interface:
         with gr.Row():
             clear_history_button = gr.Button("🗑️ Clear History", variant="stop", scale=0)
             save_history_button = gr.Button("💾 Save History", scale=0, variant="primary")
+            info_save_history = gr.Markdown()
 
         txt_result.change(show_history, None, history_display)  # Actualizar el componente de historial
+        txt_result.change(copy_prompt_to_clipboard, inputs=txt_result, outputs=info_copy)
         btn_randomize.click(randomize_elements, outputs=inputs_left + inputs_center + inputs_right)
         btn_generate.click(generate_sentence, inputs=[txt_subjects] + inputs_left + inputs_center + inputs_right, outputs=[txt_result])
-        copy_prompt.click(copy_prompt_to_clipboard, inputs=txt_result, outputs=None)
+        copy_prompt.click(copy_prompt_to_clipboard, inputs=txt_result, outputs=info_copy)
         clear_history_button.click(clear_history, None, history_display)
-        save_history_button.click(save_history_to_file)
+        save_history_button.click(save_history_to_file, outputs=info_save_history)
 
 script = Script()
 script_callbacks.on_ui_tabs(script.on_ui_tabs)
