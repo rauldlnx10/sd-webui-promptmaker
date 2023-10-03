@@ -1,13 +1,13 @@
-import random
 import gradio as gr
+import os
+import datetime
+import pyperclip
+import random
+import sys
 import modules.scripts as scripts
 from modules import ui
 from modules import shared
 from modules import script_callbacks
-import os
-import datetime
-import sys
-import pyperclip
 
 class Script(scripts.Script):
     def __init__(self) -> None:
@@ -51,10 +51,10 @@ order = [
     "Eye Color", 
     "Make Up", 
     "Looking At", 
-    "Lighting", 
+    "Light", 
     "Angles", 
-    "Camera", 
-    "Others"
+    "Others",
+    "Camera"
 ]
 
 files.sort(key=lambda x: order.index(x.split(".")[0]))
@@ -129,7 +129,7 @@ def show_history():
     return f"""
         <div style="border: 1px solid #ccc; padding: 10px; max-height: 700px; overflow-y: auto; font-size: 20px;">
             <ul style="list-style-type: none; padding-left: 0;">
-                {"".join(f"<li style='border-bottom: 1px solid #ccc; padding-bottom: 5px;'>{item}</li>" for item in history)}
+                {"".join(f"<li style='border-bottom: 0px solid #ccc; padding-bottom: 5px;'>{item}</li>" for item in history)}
             </ul>
         </div>
         """
@@ -192,8 +192,6 @@ with gr.Blocks(layout="1-3") as interface:
                 with gr.Column():
                     txt_result = gr.Markdown(text_align="center", variant="panel")
                     
-
-    
     with gr.Tab("History"):
         with gr.Row():
             history_display = gr.HTML()
@@ -202,7 +200,7 @@ with gr.Blocks(layout="1-3") as interface:
             save_history_button = gr.Button("💾 Save History", scale=0, variant="primary")
             info_save_history = gr.Markdown()
 
-        txt_result.change(show_history, None, history_display)  # Actualizar el componente de historial
+        txt_result.change(show_history, None, history_display)  
         txt_result.change(copy_prompt_to_clipboard, inputs=txt_result, outputs=info_copy)
         btn_randomize.click(randomize_elements, outputs=inputs_left + inputs_center + inputs_right)
         btn_generate.click(generate_sentence, inputs=[txt_subjects] + inputs_left + inputs_center + inputs_right, outputs=[txt_result])
